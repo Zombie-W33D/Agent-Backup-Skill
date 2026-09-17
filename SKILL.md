@@ -24,7 +24,22 @@ Runtime/state artifacts that shouldn't be versioned:
 - Lock files (`.lock`, `.sock`, `.pid`)
 - Large cache JSONs (`models_dev_cache.json`, etc.)
 
-## Usage
+## Location
+
+This skill lives in three places:
+
+- **Real working copy (where backup.py runs from):** `/bot-skillcode/agent-backup-skill/`
+- **Public GH repo (storage + reusable by others):** `https://github.com/Zombie-W33D/Agent-Backup-Skill`
+- **Profile-local loadable skill doc (if installed):** optional flat `.md` keepsake in `/bot-workspace/skills/agent-backup-skill.md`
+
+The repo at `/bot-skillcode/agent-backup-skill/` is the actual working copy — this is where you run `python3 backup.py` from. The GH repo is the public-facing storage. If you want a keepsake `.md` copy inventoried in `/bot-workspace/skills/`, copy the `SKILL.md` there as `agent-backup-skill.md`.
+
+### Running backup.py from its new home
+
+```bash
+cd /bot-skillcode/agent-backup-skill
+python3 backup.py --target /tmp/backup-test
+```
 
 ### As a skill (Hermes agent)
 
@@ -35,26 +50,28 @@ When invoked as a Hermes skill, the skill:
 
 The skill never hardcodes "aria" — it discovers the active profile dynamically.
 
-### As a CLI tool
+### Usage
+
+#### Running backup.py
 
 ```bash
 # Back up the active profile (discovered automatically)
-python3 backup.py
+cd /bot-skillcode/agent-backup-skill && python3 backup.py
 
 # Back up a specific profile
-python3 backup.py --profile aria
+cd /bot-skillcode/agent-backup-skill && python3 backup.py --profile aria
 
-# With .env encryption (passphrase via env or arg)
-python3 backup.py --passphrase "$BACKUP_PASSPHRASE"
+# With .env encryption (passphrase via keyfile — auto-reads ~/.agent-backup-key)
+cd /bot-skillcode/agent-backup-skill && python3 backup.py
 
 # Dry run — see what would be backed up
-python3 backup.py --dry-run
+cd /bot-skillcode/agent-backup-skill && python3 backup.py --dry-run
 
 # List everything that would be skipped
-python3 backup.py --list-skips
+cd /bot-skillcode/agent-backup-skill && python3 backup.py --list-skips
 
 # Custom target directory
-python3 backup.py --target /path/to/repo
+cd /bot-skillcode/agent-backup-skill && python3 backup.py --target /path/to/repo
 ```
 
 ### Pushing to GitHub
