@@ -29,10 +29,6 @@ Runtime/state artifacts that shouldn't be versioned:
 This skill lives in three places:
 
 - **Real working copy (where backup.py runs from):** `/bot-skillcode/agent-backup-skill/`
-- **Public GH repo (storage + reusable by others):** `https://github.com/Zombie-W33D/Agent-Backup-Skill`
-- **Profile-local loadable skill doc (if installed):** optional flat `.md` keepsake in `/bot-workspace/skills/agent-backup-skill.md`
-
-The repo at `/bot-skillcode/agent-backup-skill/` is the actual working copy — this is where you run `python3 backup.py` from. The GH repo is the public-facing storage. If you want a keepsake `.md` copy inventoried in `/bot-workspace/skills/`, copy the `SKILL.md` there as `agent-backup-skill.md`.
 
 ### Running backup.py from its new home
 
