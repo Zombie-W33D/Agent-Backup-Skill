@@ -152,8 +152,16 @@ def compute_file_hash(path: Path) -> str:
 
 
 def encrypt_env_gpg(env_path: Path, passphrase_file: Path) -> Path:
-    """Encrypt .env with gpg symmetric encryption. Returns path to .env.gpg."""
-    out_path = env_path.with_suffix(".env.gpg")
+    """Encrypt .env with gpg symmetric encryption. Returns path to .env.gpg.
+
+    The original .env is left in place; the encrypted copy is written to a
+    temporary file and returned. The caller is responsible for copying that
+    encrypted copy where it needs to go (e.g. into the backup repo).
+    """
+    # Write the encrypted copy to a temp file so we never touch the original
+    tmp = tempfile.NamedTemporaryFile(suffix=".env.gpg", delete=False)
+    tmp.close()
+    out_path = Path(tmp.name)
     cmd = [
         "gpg", "--symmetric", "--batch", "--yes",
         "--passphrase-file", str(passphrase_file),
@@ -162,9 +170,8 @@ def encrypt_env_gpg(env_path: Path, passphrase_file: Path) -> Path:
     ]
     result = subprocess.run(cmd, capture_output=True, text=True)
     if result.returncode != 0:
+        out_path.unlink(missing_ok=True)
         raise RuntimeError(f"gpg encrypt failed: {result.stderr}")
-    # Wipe the plaintext copy — keep only encrypted
-    env_path.unlink()
     return out_path
 
 
@@ -361,6 +368,17 @@ def main():
     print(f"Profile dir: {profile_dir}")
     print(f"HERMES_HOME: {hermes_home}")
 
+    # Resolve passphrase: --passphrase > keyfile > none
+    passphrase = args.passphrase
+    if not passphrase:
+        keyfile = Path.home() / ".agent-backup-key"
+        if keyfile.exists():
+            try:
+                passphrase = keyfile.read_text().strip()
+                print(f"Using keyfile: {keyfile}")
+            except Exception as e:
+                print(f"WARNING: Could not read keyfile {keyfile}: {e}", file=sys.stderr)
+
     if args.list_skips:
         skips = []
         for root, dirs, files in os.walk(profile_dir):
@@ -385,7 +403,7 @@ def main():
     target = args.target or f"./agent-backup-{profile_name}"
     manifest = backup_profile(
         profile_dir, target,
-        passphrase=args.passphrase or "",
+        passphrase=passphrase or "",
         dry_run=args.dry_run,
         commit_msg=args.commit_msg,
     )
