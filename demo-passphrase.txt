@@ -1,0 +1,3 @@
+# Demo passphrase for testing
+# In production, use a stronger passphrase and a secure storage method.
+backup-test-passphrase-2026
